@@ -79,7 +79,6 @@ export async function POST(req) {
 
     const cartId = await getOrCreateCart(data.id);
 
-    // ✅ BULK INSERT (NO JS LOOP)
     await sql`
       INSERT INTO cart_items (
         cart_id,

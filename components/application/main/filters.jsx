@@ -38,7 +38,7 @@ export default function Filter({
       try {
         const [catRes, optRes] = await Promise.all([
           axios.get("/api/category/get"),
-          axios.get("/api/shop?options=true"),   // ← only change
+          axios.get("/api/shop?options=true"),
         ]);
         setAvailableCats(catRes.data.data || []);
         setAvailableSizes(optRes.data.sizes || []);

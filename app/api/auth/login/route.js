@@ -25,6 +25,10 @@ export async function POST(request) {
       return NextResponse.json({ status: 403, msg: 'Please verify your email first', type: 'error' });
     }
 
+    if (user.login_method === "google" || user.login_method === "fb"){
+      return NextResponse.json({ status: 402, msg: 'Social Logins can only be logged in through previous sign up method', type: 'error' })
+    }
+
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json({ status: 401, msg: 'Invalid credentials', type: 'error' });

@@ -1,4 +1,17 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.vscode/
+.idea/
+
+package-lock.json.lock
+pnpm-lock.yaml.lock
+
+# Log files
+*.log
+*.tmp
+*.temp
+
+# Next.js specific logs
+.eslintcache
 
 # dependencies
 /node_modules

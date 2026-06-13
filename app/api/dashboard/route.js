@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
+import { sql } from "@/lib/sql";
 import { isAuthentic } from "@/utils/role";
-import Order from "@/models/Order.models";
-import ProductVariant from "@/models/ProductVariant.models";
 
 export async function GET(request) {
   try {
@@ -11,64 +9,50 @@ export async function GET(request) {
       return NextResponse.json({ type: "error", msg: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const [monthlyRevenue, orderStatusCounts, lowStockVariants] = await Promise.all([
+      sql`
+        SELECT 
+          EXTRACT(YEAR FROM created_at)::INT AS year,
+          EXTRACT(MONTH FROM created_at)::INT AS month,
+          SUM(total)::FLOAT AS revenue,
+          COUNT(*)::INT AS orders_count
+        FROM orders
+        WHERE order_status != 'cancelled'
+        GROUP BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+        ORDER BY year ASC, month ASC
+        LIMIT 12;
+      `,
 
-    const [stats, lowStockVariants] = await Promise.all([
-      Order.aggregate([
-        {
-          $facet: {
-            monthlyRevenue: [
-              { $match: { orderStatus: { $ne: "cancelled" } } },
-              {
-                $group: {
-                  _id: {
-                    year: { $year: "$createdAt" },
-                    month: { $month: "$createdAt" }
-                  },
-                  revenue: { $sum: "$total" },
-                  ordersCount: { $sum: 1 }
-                }
-              },
-              { $sort: { "_id.year": 1, "_id.month": 1 } },
-              { $limit: 12 }
-            ],
-            orderStatusCounts: [
-              {
-                $group: {
-                  _id: "$orderStatus",
-                  count: { $sum: 1 }
-                }
-              }
-            ]
-          }
-        }
-      ]),
+      sql`
+        SELECT 
+          order_status AS status,
+          COUNT(*)::INT AS count
+        FROM orders
+        GROUP BY order_status;
+      `,
 
-      ProductVariant.find({
-        $and: [
-          { $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }] },
-          { stock: { $lt: 10 } }
-        ]
-      })
-      .select("_id sku stock size color price")
-      .sort({ stock: 1 })
-      .limit(8)
-      .lean()
+      sql`
+        SELECT 
+          id, sku, stock, size, color, price::FLOAT
+        FROM product_variants
+        WHERE deleted_at IS NULL 
+          AND stock < 10
+        ORDER BY stock ASC
+        LIMIT 8;
+      `
     ]);
 
-    const result = stats[0];
-    
-    const formattedRevenue = result.monthlyRevenue.map((item) => {
-      const date = new Date(item._id.year, item._id.month - 1);
+    const formattedRevenue = monthlyRevenue.map((item) => {
+      const date = new Date(item.year, item.month - 1);
       return {
         name: date.toLocaleString('default', { month: 'short' }),
         revenue: item.revenue,
-        orders: item.ordersCount,
+        orders: item.orders_count,
       };
     });
 
-    const statusMap = result.orderStatusCounts.reduce((acc, curr) => {
-      acc[curr._id] = curr.count;
+    const statusMap = orderStatusCounts.reduce((acc, curr) => {
+      acc[curr.status] = curr.count;
       return acc;
     }, {});
 
@@ -79,7 +63,7 @@ export async function GET(request) {
         statusDistribution: statusMap,
         lowStockAlerts: lowStockVariants.map(v => ({
           ...v,
-          _id: v._id.toString()
+          _id: v.id
         })),
       }
     });

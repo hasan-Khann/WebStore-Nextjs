@@ -88,7 +88,7 @@ export default function CheckoutPage() {
             duration: 0.8,
             stagger: 0.15,
             ease: "power3.out",
-            clearProps: "all", // THIS FIXES THE INVISIBLE BUTTON BUG
+            clearProps: "all",
           }, "-=0.5")
           .from(".animate-sidebar", {
             opacity: 0,
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
         } else {
           toast.success("Order Initialized!", { id: procToast });
         }
-        setTimeout(() => { window.location.href = res.data.url; }, 3000);
+          setTimeout(() => { window.location.href = res.data.url; }, 4000);
         return;
       }
 
