@@ -1,78 +1,62 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/User.models";
-
-const generateAccessAndRefreshToken = async (user) => {
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
-
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
-
-  return { accessToken, refreshToken };
-};
+import { generateAccessToken, generateRefreshToken } from "@/utils/auth";
+import { sql } from "@/lib/sql";
 
 export async function GET(req) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
   try {
     const code = req.nextUrl.searchParams.get("code");
-    if (!code) return NextResponse.redirect("/auth/login?error=no_code");
+    if (!code) {
+      return NextResponse.redirect(new URL("/auth/login?error=no_code", baseUrl));
+    }
 
-    // Get access token from Facebook
     const tokenUrl =
       "https://graph.facebook.com/v17.0/oauth/access_token?" +
       new URLSearchParams({
         client_id: process.env.FACEBOOK_APP_ID,
         client_secret: process.env.FACEBOOK_CLIENT_SECRET,
-        redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/facebook/callback`,
+        redirect_uri: `${baseUrl}/api/auth/facebook/callback`,
         code,
       });
 
-    const tokenData = await (await fetch(tokenUrl)).json();
+    const tokenResponse = await fetch(tokenUrl);
+    const tokenData = await tokenResponse.json();
 
-    if (!tokenData.access_token) return NextResponse.redirect("/auth/login?error=invalid_token");
+    if (!tokenData.access_token) {
+      return NextResponse.redirect(new URL("/auth/login?error=invalid_token", baseUrl));
+    }
 
-    // Get user profile
     const profile = await fetch(
       `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${tokenData.access_token}`
     ).then((r) => r.json());
 
-    if (!profile.email) return NextResponse.redirect("/auth/login?error=no_email");
-
-    await connectDB();
-
-    let user = await User.findOne({ email: profile.email });
-    if (!user) {
-      user = await User.create({
-        name: profile.name,
-        email: profile.email,
-        provider: "facebook",
-      });
+    if (!profile.email) {
+      return NextResponse.redirect(new URL("/auth/login?error=no_email", baseUrl));
     }
 
-    const { accessToken } = await generateAccessAndRefreshToken(user);
-
-    const res = NextResponse.json({
-      status: 200,
-      msg: "Login successful",
-      type: "success",
-      data: {
-        username: user.username,
-        phone: user.phone,
-        address: user.address || null,
-      },
-      redirectTo: "/admin",
-    });
-
-    res.cookies.set("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
-
+    const [user] = await sql`
+        INSERT INTO users (username, email, password, role, login_method)
+        VALUES (${profile.name}, ${profile.email}, NULL, 'admin', 'facebook')
+        ON CONFLICT (email) DO UPDATE 
+        SET email = EXCLUDED.email
+        RETURNING id, username, email, role
+      `;
+    
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    
+    await sql`UPDATE users SET refresh_token = ${refreshToken} WHERE id = ${user.id}`;
+  
+    const res = NextResponse.redirect(new URL("/", baseUrl));
+  
+    res.cookies.set('accessToken', accessToken, { httpOnly: true, path: '/', maxAge: 900, secure: process.env.NODE_ENV === 'production' });
+    res.cookies.set('refreshToken', refreshToken, { httpOnly: true, path: '/', maxAge: 2592000, secure: process.env.NODE_ENV === 'production' });
+  
     return res;
-  } catch (err) {
-    console.error(err);
-    return NextResponse.redirect("/auth/login?error=server_error");
+
+  } catch (error) {
+    console.error("Facebook auth error:", error);
+    return NextResponse.redirect(new URL("/auth/login?error=server_error", baseUrl));
   }
 }

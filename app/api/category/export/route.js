@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/sql";
 import { isAuthentic } from "@/utils/role";
-import { redis } from "@/lib/rediscache";
 
 export async function GET(request) {
   try {

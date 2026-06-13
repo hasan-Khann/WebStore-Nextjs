@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/sql";
-import { isAuthentic } from "@/utils/token";
+import { isAuthentic } from "@/utils/role";
 
 export async function GET(request) {
   try {

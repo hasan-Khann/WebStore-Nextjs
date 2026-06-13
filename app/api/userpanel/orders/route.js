@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/sql";
-import { getUser } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const user = await getUser();
 
-    if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const token = request.cookies?.get("accessToken")?.value || authHeader?.split(" ")[1];
+    if (!token) return NextResponse.json({ type: "error", msg: "Unauthorized" }, { status: 401 });
+    
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    if (decoded.role !== "user"|| decoded.role !== "admin"){
+      return NextResponse.json({ type: "error", msg: "Unauthorized" }, { status: 401 });
     }
 
     const orders = await sql`

@@ -1,6 +1,6 @@
+import { isAuthentic } from '@/utils/role';
 import { neon } from '@neondatabase/serverless';
 import { NextResponse } from 'next/server';
-import { isAuthentic } from "@/utils/token";
 
 const sql = neon(process.env.NEON_URL);
 const isUUID = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);

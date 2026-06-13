@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { 
   Trash2, 
@@ -19,7 +19,6 @@ import { ADMIN_DASHBOARD, ADMIN_MEDIA } from "@/routes/AdminPanelRoute";
 import BreadCrumb from "@/components/application/admin/breadcrumb";
 import UploadMedia from "@/components/application/admin/uploadmedia";
 import MediaCard from "@/components/application/admin/media";
-import useDeleteMutation from "@/hooks/useDeleteMutations";
 import api from "@/utils/api";
 import { Button } from "@/components/ui/button";
 
@@ -53,7 +52,20 @@ const MediaPage = () => {
     return unique;
   }, [data]);
 
-  const deleteMutation = useDeleteMutation("media-data", "/api/media/delete");
+  const deleteMutation = useMutation({
+    mutationFn: async ({ Ids, deleteType }) => {
+      const res = await api.delete("/api/media/delete", {
+        data: { Ids, deleteType },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["media-data"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete media assets:", error);
+    },
+  });
 
   const handleDelete = (Ids, type) => {
     deleteMutation.mutate({ Ids, deleteType: type });
@@ -172,9 +184,14 @@ const MediaPage = () => {
               variant="destructive"
               size="sm"
               className="h-9 px-6 rounded-full font-bold text-[11px] uppercase tracking-wider"
+              disabled={deleteMutation.isPending}
               onClick={() => handleDelete(selectedMedia, deleteType)}
             >
-              {isTrashMode ? "Wipe Permanently" : "Move to Trash"}
+              {deleteMutation.isPending 
+                ? "Processing..." 
+                : isTrashMode 
+                  ? "Wipe Permanently" 
+                  : "Move to Trash"}
             </Button>
             
             <button

@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/sql";
-import { getUser } from "@/lib/auth";
+import { isAuthentic } from "@/utils/role";
 
 export async function GET(req) {
   try {
-    const user = await getUser();
-    
-    if (!user?.id) {
-      return NextResponse.json({ success: false }, { status: 401 });
-    }
+    const auth = await isAuthentic("admin", req);
+        if (!auth.isAuth) {
+          return NextResponse.json({ type: "error", msg: "Unauthorized" }, { status: 401 });
+        }
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;

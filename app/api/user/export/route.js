@@ -1,6 +1,6 @@
+import { isAuthentic } from '@/utils/role';
 import { neon } from '@neondatabase/serverless';
 import { NextResponse } from 'next/server';
-import { isAuthentic } from "@/utils/token";
 
 const sql = neon(process.env.NEON_URL);
 
