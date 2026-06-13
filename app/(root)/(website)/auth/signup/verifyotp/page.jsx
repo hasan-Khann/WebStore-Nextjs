@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { showToast } from "@/lib/toast";
@@ -16,7 +16,7 @@ import { setCredentials } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { FaShieldAlt } from "react-icons/fa";
 
-export default function VerifyOTPPage() {
+function VerifyOTPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
@@ -158,5 +158,13 @@ export default function VerifyOTPPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyOTPPage />
+    </Suspense>
   );
 }

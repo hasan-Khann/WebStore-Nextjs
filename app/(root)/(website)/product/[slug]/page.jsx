@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, use, useRef } from "react";
+import { useEffect, useMemo, useState, use, useRef, Suspense } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
@@ -16,7 +16,7 @@ import { ReviewsAndRating } from "@/components/application/main/reviewAndrating"
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-export default function ProductPage({ params: paramsPromise }) {
+function ProductPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
   const slug = params.slug;
   const searchParams = useSearchParams();
@@ -325,5 +325,13 @@ export default function ProductPage({ params: paramsPromise }) {
         <ReviewsAndRating productId={data.productId} onStatsUpdate={(stats) => setReviewStats(stats)} />
       </section>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProductPage />
+    </Suspense>
   );
 }

@@ -49,7 +49,6 @@ function ShopContent() {
     limit, sort, categories, price, search, sizes, colors,
   });
 
-  // Grid entrance animation
   useEffect(() => {
     if (!loading && products.length > 0 && gridRef.current) {
       gsap.fromTo(
@@ -60,7 +59,6 @@ function ShopContent() {
     }
   }, [loading, products.length]);
 
-  // Mobile drawer animation
   useEffect(() => {
     if (isMobileFilterOpen) {
       document.body.style.overflow = "hidden";

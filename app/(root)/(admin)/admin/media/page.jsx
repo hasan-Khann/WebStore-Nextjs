@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, Suspense } from "react"; // Added Suspense
 import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -22,7 +22,7 @@ import MediaCard from "@/components/application/admin/media";
 import api from "@/utils/api";
 import { Button } from "@/components/ui/button";
 
-const MediaPage = () => {
+const MediaPageContent = () => {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedMedia, setSelectedMedia] = useState([]);
@@ -218,6 +218,14 @@ const MediaPage = () => {
         )}
       </main>
     </div>
+  );
+};
+
+const MediaPage = () => {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-zinc-500">Loading Media Library...</div>}>
+      <MediaPageContent />
+    </Suspense>
   );
 };
 
