@@ -1,19 +1,25 @@
 # E-Store
 
+🔗 **[Live Preview](https://web-store-nextjs-alpha.vercel.app/)**
+
 A full-stack e-commerce platform built with **Next.js 16**, covering the core shopping journey end to end: authentication, product discovery, cart persistence, order creation, and admin-side management.
+
+---
 
 ## Overview
 
 The app includes:
 
-* email-based **sign up** with OTP verification
-* **sign in** and **forgot password** flows with OTP reset
-* **access token + refresh token** auth using HTTP-only cookies
+* Email-based **sign up** with OTP verification
+* **Sign in** and **forgot password** flows with OTP reset
+* **Access token + refresh token** auth using HTTP-only cookies
 * **Axios interceptor** refresh flow for automatic session recovery
-* product browsing with **search, filtering, sorting, and cursor-based pagination**
-* a **Redux cart** with local persistence and database sync for logged-in users
-* inventory management
-* checkout flow with **PayFast sandbox**
+* Product browsing with **search, filtering, sorting, and cursor-based pagination**
+* A **Redux cart** with local persistence and database sync for logged-in users
+* Inventory management
+* Checkout flow with **PayFast sandbox**
+
+---
 
 ## Tech Stack
 
@@ -49,6 +55,8 @@ The app includes:
 * **clsx**
 * **tailwind-merge**
 * **export-to-csv**
+
+---
 
 ## Key Features
 
@@ -91,6 +99,8 @@ The app includes:
 * Order creation flow
 * Payment integration with **PayFast sandbox**
 
+---
+
 ## Authentication Flow
 
 ### Sign up and OTP verification
@@ -103,7 +113,7 @@ The app includes:
 6. The OTP is emailed to the user.
 7. After successful OTP verification, the user is inserted into the database, marked verified, and issued access and refresh tokens.
 
-This flow keeps account creation controlled and avoids creating active users before email ownership is confirmed.
+> This flow keeps account creation controlled and avoids creating active users before email ownership is confirmed.
 
 ### Forgot password
 
@@ -123,7 +133,9 @@ The client uses an Axios interceptor so expired access tokens do not break the U
 * On success, the user session is updated and queued requests retry automatically.
 * On failure, the app clears auth state and redirects to `/login`.
 
-This gives the app a smoother session experience without forcing the user to log in again unnecessarily.
+> This gives the app a smoother session experience without forcing the user to log in again unnecessarily.
+
+---
 
 ## Shop Flow
 
@@ -145,7 +157,7 @@ The shop API builds the query dynamically based on the request.
 * Uses a stable cursor for pagination
 * Fetches `limit + 1` rows to determine whether another page exists
 
-Cursor pagination for better offset-based pagination when product data grows.
+---
 
 ## Cart Flow
 
@@ -157,28 +169,31 @@ The cart slice is designed with an optimistic update strategy.
 * Cart items are normalized so different payload shapes still behave consistently
 * Totals are recalculated after each change
 
+---
+
 ## Project Notes
 
 A lot of the implementation was shaped using documentation, internet references, and AI assistance, especially where syntax details were easy to forget. The goal of the project, however, is not just syntax memorization — it is building a working product with real flow, state, validation, database integration, and session handling.
 
 The project is intentionally built as a practical, portfolio-style e-commerce system that demonstrates understanding of application structure, data flow, and user experience.
 
+---
+
 ## Environment Variables
 
 Create a `.env.local` file and configure the values used by your app.
 
 ```env
-
-#neon
+# neon
 NEON_URL=
 
-#cloudinary
+# cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 NEXT_PUBLIC_CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 NEXT_PUBLIC_CLOUDINARY_PRESET=
 
-#tokens
+# tokens
 ACCESS_TOKEN_SECRET=
 ACCESS_TOKEN_EXPIRY=
 REFRESH_TOKEN_SECRET=
@@ -188,17 +203,19 @@ TEMP_DATA_TOKEN_EXPIRY=
 JWT_SECRET=
 RESEND_API_KEY=
 
-#Oauth2
+# Oauth2
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
-#payfast
+# payfast
 MERCHANT_ID=
 MERCHANT_KEY=
 SANDBOX_URL=
 
 NEXT_PUBLIC_BASE_URL=
 ```
+
+---
 
 ## Local Development
 
@@ -213,6 +230,8 @@ npm run dev
 npm run build
 npm start
 ```
+
+---
 
 ## Folder Structure
 

@@ -328,10 +328,10 @@ function ProductPage({ params: paramsPromise }) {
   );
 }
 
-export default function Page() {
+export default function Page({ params }) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ProductPage />
+      <ProductPage params={params} />
     </Suspense>
   );
 }

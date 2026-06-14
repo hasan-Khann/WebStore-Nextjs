@@ -139,7 +139,7 @@ const AccountDropdown = () => {
             sub="Manage purchases"
           />
           <DropdownLink
-            href="/auth/login/forgetpassword"
+            href="/auth/login/forgotpassword"
             icon={<FiShield />}
             label="Security"
             sub="Password reset"
